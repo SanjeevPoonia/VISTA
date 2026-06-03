@@ -8,6 +8,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:toast/toast.dart';
 import 'package:vista/issue_admin/store_performance_screen.dart';
 import 'package:vista/issue_admin/storewise_ticket_screen.dart';
+import 'package:vista/network/api_dialog.dart';
 import 'package:vista/network/loader.dart';
 import 'package:vista/utils/app_theme.dart';
 import 'package:vista/views/notification_screen.dart';
@@ -615,10 +616,11 @@ class _issueAdminState extends State<IssueAdminDashboard>{
       setState(() {
         isStoreLoading=false;
       });
-      Toast.show(responseJSON["message"],
+      /*Toast.show(responseJSON["message"],
           duration: Toast.lengthLong,
           gravity: Toast.bottom,
-          backgroundColor: Colors.red);
+          backgroundColor: Colors.red);*/
+      APIDialog.showErrorDialog(responseJSON["message"]?.toString()??"Something went wrong. Please try again", context);
     }
 
 
@@ -702,10 +704,11 @@ class _issueAdminState extends State<IssueAdminDashboard>{
       setState(() {
         isTicketLoading=false;
       });
-      Toast.show(responseJSON["message"],
+      /*Toast.show(responseJSON["message"],
           duration: Toast.lengthLong,
           gravity: Toast.bottom,
-          backgroundColor: Colors.red);
+          backgroundColor: Colors.red);*/
+      APIDialog.showErrorDialog(responseJSON["message"]?.toString()??"Something went wrong. Please try again", context);
     }
 
 
@@ -948,10 +951,11 @@ class _issueAdminState extends State<IssueAdminDashboard>{
       setState(() {
         isParetoLoading=false;
       });
-      Toast.show(responseJSON["message"],
+      /*Toast.show(responseJSON["message"],
           duration: Toast.lengthLong,
           gravity: Toast.bottom,
-          backgroundColor: Colors.red);
+          backgroundColor: Colors.red);*/
+      APIDialog.showErrorDialog(responseJSON["message"]?.toString()??"Something went wrong. Please try again", context);
     }
 
 

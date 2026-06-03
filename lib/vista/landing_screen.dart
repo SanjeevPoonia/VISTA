@@ -17,6 +17,7 @@ import 'package:vista/vista/show_expired_checksheet_screen.dart';
 import 'package:vista/vista/showcompleted_task_screen.dart';
 import 'package:vista/vista/submitform_screen.dart';
 import 'package:vista/vista/submitform_vi_screen.dart';
+import 'package:vista/vista/update_password_screen.dart';
 import 'package:vista/vista/vi_show_completed_task_details.dart';
 import 'dart:io';
 import '../help/raise_issue_screen.dart';
@@ -80,6 +81,19 @@ class _landingState extends State<LandingScreen>{
         elevation: 0,
         backgroundColor: AppTheme.at_details_header,
         centerTitle: true,
+        leading: IconButton(
+          icon: Image.asset(
+            'assets/update_pass.png',
+            width: 28,
+            height: 28,
+            color: AppTheme.themeColor, // Optional, remove if image has its own colors
+          ),
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => UpdatePasswordScreen())).then((value) => {
+              _getUserData()
+            });
+          },
+        ),
         title: const Text(
           "Dashboard",
           style: TextStyle(

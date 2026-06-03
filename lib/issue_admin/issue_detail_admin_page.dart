@@ -447,10 +447,11 @@ class _issueDetailsState extends State<IssueDetailsAdminScreen>{
     else {
       setState(() {
       });
-      Toast.show(responseJSON["message"],
+      /*Toast.show(responseJSON["message"],
           duration: Toast.lengthLong,
           gravity: Toast.bottom,
-          backgroundColor: Colors.red);
+          backgroundColor: Colors.red);*/
+      APIDialog.showErrorDialog(responseJSON["message"]?.toString()??"Something went wrong. Please try again", context);
     }
 
 
@@ -481,23 +482,26 @@ class _issueDetailsState extends State<IssueDetailsAdminScreen>{
         if(remarkController.text.isNotEmpty){
           _updateTicketStatus(context);
         }else{
-          Toast.show("Please enter an update remark.",
+          /*Toast.show("Please enter an update remark.",
               duration: Toast.lengthLong,
               gravity: Toast.bottom,
-              backgroundColor: Colors.red);
+              backgroundColor: Colors.red);*/
+          APIDialog.showErrorDialog("Please enter an update remark.", context);
         }
       }else{
-        Toast.show("The selected status is already applied. Kindly choose another.",
+        /*Toast.show("The selected status is already applied. Kindly choose another.",
             duration: Toast.lengthLong,
             gravity: Toast.bottom,
-            backgroundColor: Colors.red);
+            backgroundColor: Colors.red);*/
+        APIDialog.showErrorDialog("The selected status is already applied. Kindly choose another.", context);
       }
 
   }else{
-      Toast.show("Please select status",
+      /*Toast.show("Please select status",
           duration: Toast.lengthLong,
           gravity: Toast.bottom,
-          backgroundColor: Colors.red);
+          backgroundColor: Colors.red);*/
+      APIDialog.showErrorDialog("Please select status", context);
     }
 
   }
@@ -538,10 +542,11 @@ class _issueDetailsState extends State<IssueDetailsAdminScreen>{
     else {
       setState(() {
       });
-      Toast.show(responseJSON["message"],
+      /*Toast.show(responseJSON["message"],
           duration: Toast.lengthLong,
           gravity: Toast.bottom,
-          backgroundColor: Colors.red);
+          backgroundColor: Colors.red);*/
+      APIDialog.showErrorDialog(responseJSON["message"]?.toString()??"Something went wrong. Please try again", context);
     }
 
 

@@ -5,18 +5,17 @@ import 'package:vista/utils/app_theme.dart';
 class MarkAttendanceScreen extends StatefulWidget{
    int cameraSelected=1;
   MarkAttendanceScreen(this.cameraSelected, {super.key});
-
   _markAttendance createState()=>_markAttendance();
 }
 class _markAttendance extends State<MarkAttendanceScreen> {
-
   CameraController? _controller;
   CameraDescription? camera;
   List<CameraDescription> cameras = [];
   int cameraSelection = 0;
-
-  String? _cameraError; // ✅ Error message track करने के लिए
-
+  String? _cameraError;
+  double _currentZoomLevel = 1.0;
+  double _minZoomLevel = 1.0;
+  double _maxZoomLevel = 1.0;
   initializeCamera() async {
     print("Camera Triggered");
     _controller = CameraController(
@@ -24,8 +23,10 @@ class _markAttendance extends State<MarkAttendanceScreen> {
       ResolutionPreset.medium,
     );
 
-    _controller!.initialize().then((_) {
+    _controller!.initialize().then((_)async {
       if (!mounted) return;
+      _minZoomLevel = await _controller!.getMinZoomLevel();
+      _maxZoomLevel = await _controller!.getMaxZoomLevel();
       setState(() {
         _cameraError = null; // success case
       });
@@ -45,7 +46,6 @@ class _markAttendance extends State<MarkAttendanceScreen> {
       }
     });
   }
-
   Future<void> getCameras() async {
     try {
       cameras = await availableCameras();
@@ -60,14 +60,12 @@ class _markAttendance extends State<MarkAttendanceScreen> {
       print(camera);
     }
   }
-
   @override
   void initState() {
     super.initState();
     cameraSelection = widget.cameraSelected;
     getCameras();
   }
-
   @override
   void dispose() {
     if (_controller != null && _controller!.value.isInitialized) {
@@ -75,7 +73,30 @@ class _markAttendance extends State<MarkAttendanceScreen> {
     }
     super.dispose();
   }
+  Future<void> _zoomIn() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
 
+    double zoom = (_currentZoomLevel + 0.5)
+        .clamp(_minZoomLevel, _maxZoomLevel);
+
+    await _controller!.setZoomLevel(zoom);
+
+    setState(() {
+      _currentZoomLevel = zoom;
+    });
+  }
+  Future<void> _zoomOut() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+
+    double zoom = (_currentZoomLevel - 0.5)
+        .clamp(_minZoomLevel, _maxZoomLevel);
+
+    await _controller!.setZoomLevel(zoom);
+
+    setState(() {
+      _currentZoomLevel = zoom;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -108,80 +129,200 @@ class _markAttendance extends State<MarkAttendanceScreen> {
                 ),
               ),
 
-          // ✅ Bottom Controls (hide if error)
+         /* Positioned(
+            bottom: 120,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  "${_currentZoomLevel.toStringAsFixed(1)}x",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // ✅ Bottom Controls (hide if error)*/
           if (_cameraError == null)
             Column(
               children: [
                 const Spacer(),
                 Container(
                   width: double.infinity,
-                  height: 100,
+                  padding: const EdgeInsets.only(
+                    top: 15,
+                    bottom: 25,
+                    left: 20,
+                    right: 20,
+                  ),
                   decoration: BoxDecoration(
-                    shape: BoxShape.rectangle,
+                    color: Colors.black.withOpacity(0.75),
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      topRight: Radius.circular(10),
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24),
                     ),
-                    color: AppTheme.camBackColor,
                   ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(child: Container()),
 
-                          // Take Picture Button
+                      // Zoom Indicator
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white24,
+                          ),
+                        ),
+                        child: Text(
+                          "${_currentZoomLevel.toStringAsFixed(1)}x",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 18),
+
+                      Row(
+                        children: [
+
                           Expanded(
-                            child: GestureDetector(
-                              onTap: () async {
-                                if (_controller != null &&
-                                    _controller!.value.isInitialized) {
-                                  XFile file = await _controller!.takePicture();
-                                  Navigator.pop(context, file);
-                                  setState(() {});
-                                }
-                              },
-                              child: Icon(
-                                Icons.camera,
-                                color: AppTheme.orangeColor,
-                                size: 60,
+                            flex: 2,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(.10),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _controlButton(
+                                    icon: Icons.remove,
+                                    onTap: _zoomOut,
+                                  ),
+
+                                  const SizedBox(width: 6),
+
+                                  Flexible(
+                                    child: Icon(Icons.zoom_in,size: 32,color: AppTheme.orangeColor,),
+                                  ),
+
+                                  const SizedBox(width: 6),
+
+                                  _controlButton(
+                                    icon: Icons.add,
+                                    onTap: _zoomIn,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () async {
+                              if (_controller == null ||
+                                  !_controller!.value.isInitialized) {
+                                return;
+                              }
 
-                          // Switch Camera Button
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                _cameraChange();
-                              },
-                              child: Icon(
-                                Icons.flip_camera_android,
-                                color: AppTheme.themeColor,
-                                size: 40,
+                              XFile file = await _controller!.takePicture();
+
+                              if (mounted) {
+                                Navigator.pop(context, file);
+                              }
+                            },
+                            child: Container(
+                              width: 65,
+                              height: 65,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 4,
+                                ),
+                              ),
+                              child: Container(
+                                margin: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: AppTheme.orangeColor,
+                                ),
                               ),
                             ),
+                          ),
+                          const SizedBox(width: 10),
+                          _controlButton(
+                            icon: Icons.cameraswitch_rounded,
+                            onTap: _cameraChange,
+                            size: 28,
                           ),
                         ],
                       ),
                     ],
                   ),
-                ),
+                )
               ],
             ),
         ],
       ),
     );
   }
+  Widget _controlButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    double size = 24,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.15),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white24,
+          ),
+        ),
+        child: Icon(
+          icon,
+          color: Colors.white,
+          size: size,
+        ),
+      ),
+    );
+  }
+  Future<void> _cameraChange() async {
 
-  _cameraChange() {
+    await _controller?.dispose();
+
     if (cameraSelection == 1) {
       cameraSelection = 0;
-    } else if (cameraSelection == 0) {
+    } else {
       cameraSelection = 1;
     }
-    getCameras();
+
+    await getCameras();
   }
 }

@@ -252,10 +252,11 @@ class _listOfIssueState extends State<ListOfIssuesPage>{
     else {
       setState(() {
       });
-      Toast.show(responseJSON["message"],
+      /*Toast.show(responseJSON["message"],
           duration: Toast.lengthLong,
           gravity: Toast.bottom,
-          backgroundColor: Colors.red);
+          backgroundColor: Colors.red);*/
+      APIDialog.showErrorDialog(responseJSON["message"]?.toString()??"Something went wrong. Please try again", context);
     }
 
 

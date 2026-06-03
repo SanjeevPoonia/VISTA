@@ -282,15 +282,16 @@ class _RaiseIssuePageState extends State<RaiseIssuePage> {
           backgroundColor: Colors.red);
       MyUtils.logoutUser(context);
     } else {
-      Toast.show(responseJSON["message"],
+      /*Toast.show(responseJSON["message"],
           duration: Toast.lengthLong,
           gravity: Toast.bottom,
-          backgroundColor: Colors.red);
+          backgroundColor: Colors.red);*/
       issueTypeList.clear();
       issueSubTypeList.clear();
       setState(() {
 
       });
+      APIDialog.showErrorDialog(responseJSON["message"]?.toString()??"Something went wrong. Please try again", context);
     }
 
 
@@ -321,15 +322,16 @@ class _RaiseIssuePageState extends State<RaiseIssuePage> {
           backgroundColor: Colors.red);
       MyUtils.logoutUser(context);
     } else {
-      Toast.show(responseJSON["message"],
+     /* Toast.show(responseJSON["message"],
           duration: Toast.lengthLong,
           gravity: Toast.bottom,
-          backgroundColor: Colors.red);
+          backgroundColor: Colors.red);*/
 
       issueSubTypeList.clear();
       setState(() {
 
       });
+      APIDialog.showErrorDialog(responseJSON["message"]?.toString()??"Something went wrong. Please try again.", context);
     }
 
 
@@ -421,10 +423,11 @@ class _RaiseIssuePageState extends State<RaiseIssuePage> {
         }
 
       }else{
-        Toast.show(data['message'],
+        /*Toast.show(data['message'],
             duration: Toast.lengthLong,
             gravity: Toast.bottom,
-            backgroundColor: Colors.red);
+            backgroundColor: Colors.red);*/
+        APIDialog.showErrorDialog(data['message']?.toString()??"Something went wrong. Please try again.", context);
       }
     }on DioError catch(e){
       print(e);
@@ -547,10 +550,11 @@ class _RaiseIssuePageState extends State<RaiseIssuePage> {
       }
 
     }else{
-      Toast.show("Unable to capture Video. Please try Again...",
+      /*Toast.show("Unable to capture Video. Please try Again...",
           duration: Toast.lengthLong,
           gravity: Toast.bottom,
-          backgroundColor: Colors.red);
+          backgroundColor: Colors.red);*/
+      APIDialog.showErrorDialog("Unable to capture Video. Please try Again...", context);
     }
 
   }

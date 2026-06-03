@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.qdegrees.vista.vista"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36//flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -24,8 +24,8 @@ android {
         applicationId = "com.qdegrees.vista.vista"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = flutter.minSdkVersion//flutter.minSdkVersion
+        targetSdk =36// flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

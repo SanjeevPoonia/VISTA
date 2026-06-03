@@ -230,14 +230,15 @@ class _raisedIssueState extends State<RaisedIssuePage> {
           backgroundColor: Colors.red);
       MyUtils.logoutUser(context);
     } else {
-      Toast.show(responseJSON["message"],
+      /*Toast.show(responseJSON["message"],
           duration: Toast.lengthLong,
           gravity: Toast.bottom,
-          backgroundColor: Colors.red);
+          backgroundColor: Colors.red);*/
       raisedIssueList.clear();
       setState(() {
 
       });
+      APIDialog.showErrorDialog(responseJSON["message"]?.toString()??"Something went wrong. Please try again", context);
     }
 
 

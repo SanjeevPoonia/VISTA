@@ -7,6 +7,7 @@ import 'package:vista/issue_admin/issue_admin_dashboard_screen.dart';
 import 'package:vista/network/Utils.dart';
 import 'package:vista/network/api_dialog.dart';
 import 'package:vista/network/api_helper.dart';
+import 'package:vista/utils/app_version_checker.dart';
 import 'package:vista/vista/landing_screen.dart';
 import 'package:vista/vista/vi_login_screen.dart';
 class SplashScreen extends StatefulWidget{
@@ -52,7 +53,7 @@ class splashState extends State<SplashScreen>
   }
 
 
-  _checkUserConditions()async{
+  /*_checkUserConditions()async{
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String? baseUrl = prefs.getString('base_url') ?? '';
     String? empRoleId=prefs.getString("emp_role_id")??'1';
@@ -79,7 +80,7 @@ class splashState extends State<SplashScreen>
       _getClientInfo(context);
     }
 
-  }
+  }*/
 
 
 
@@ -120,9 +121,74 @@ class splashState extends State<SplashScreen>
     MyUtils.saveSharedPreferences("create_task", createTask);
     MyUtils.saveSharedPreferences("assign_task", assignTask);
     MyUtils.saveSharedPreferences("edit_task", editTask);
-    Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (BuildContext context) => ViLoginScreen()));
+    _checkAppVersionAndProceed();
   }
+  Future<void> _checkUserConditions() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
 
+    String baseUrl = prefs.getString('base_url') ?? '';
+
+    if (baseUrl.isNotEmpty) {
+      await _checkAppVersionAndProceed();
+    } else {
+      await _getClientInfo(context);
+    }
+  }
+  Future<void> _checkAppVersionAndProceed() async {
+
+    bool updateAvailable = await AppVersionChecker.checkForUpdate(context);
+
+    if (!updateAvailable) {
+      _navigateNext();
+    }
+  }
+  Future<void> _navigateNext() async {
+
+    final SharedPreferences prefs =
+    await SharedPreferences.getInstance();
+    String empRoleId =
+        prefs.getString("emp_role_id") ?? "1";
+    if (widget.token.isNotEmpty) {
+      Timer(
+        const Duration(seconds: 2),
+            () {
+
+          if (empRoleId == "18" ||
+              empRoleId == "19" ||
+              empRoleId == "20" ||
+              empRoleId == "24") {
+
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => IssueAdminDashboard(),
+              ),
+            );
+
+          } else {
+
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => LandingScreen(),
+              ),
+            );
+          }
+        },
+      );
+
+    } else {
+
+      Timer(
+        const Duration(seconds: 2),
+            () {
+
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => ViLoginScreen(),
+            ),
+          );
+        },
+      );
+    }
+  }
 
 }
