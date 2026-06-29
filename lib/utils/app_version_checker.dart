@@ -77,7 +77,7 @@ class AppVersionChecker {
         ? Uri.parse(
         "https://play.google.com/store/apps/details?id=com.qdegrees.vista.vista")
         : Uri.parse(
-        "https://apps.apple.com/app/idYOUR_APP_ID");
+        "https://apps.apple.com/us/app/vista-store-audit/id6773718506");
 
     if (await canLaunchUrl(url)) {
       await launchUrl(

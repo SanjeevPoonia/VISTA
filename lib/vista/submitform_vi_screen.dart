@@ -1607,8 +1607,21 @@ class _submitFormState extends State<SubmitFormVIScreen>{
   }
   Future<void> prepairCamera() async{
 
+    final imageData=await Navigator.push(context,MaterialPageRoute(builder: (context)=>MarkAttendanceScreen(0)));
+    if(imageData!=null)
+    {
+      capturedImage=imageData;
+      capturedFile=File(capturedImage!.path);
+      openImageEditor(capturedFile!);
+    }else{
+      Toast.show("Unable to capture Image. Please try Again...",
+          duration: Toast.lengthLong,
+          gravity: Toast.bottom,
+          backgroundColor: Colors.red);
+    }
+
     // imageSelector(context);
-    if(Platform.isAndroid){
+    /*if(Platform.isAndroid){
       final imageData=await Navigator.push(context,MaterialPageRoute(builder: (context)=>MarkAttendanceScreen(0)));
       if(imageData!=null)
       {
@@ -1624,7 +1637,7 @@ class _submitFormState extends State<SubmitFormVIScreen>{
       }
     }else{
       imageSelector(context);
-    }
+    }*/
 
 
   }

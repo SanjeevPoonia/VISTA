@@ -49,6 +49,9 @@ class _markAttendance extends State<MarkAttendanceScreen> {
   Future<void> getCameras() async {
     try {
       cameras = await availableCameras();
+      if (cameraSelection >= cameras.length) {
+        cameraSelection = 0;
+      }
       initializeCamera();
     } catch (e) {
       setState(() {
@@ -68,9 +71,10 @@ class _markAttendance extends State<MarkAttendanceScreen> {
   }
   @override
   void dispose() {
-    if (_controller != null && _controller!.value.isInitialized) {
+    /*if (_controller != null && _controller!.value.isInitialized) {
       _controller!.dispose();
-    }
+    }*/
+    _controller?.dispose();
     super.dispose();
   }
   Future<void> _zoomIn() async {
@@ -99,7 +103,7 @@ class _markAttendance extends State<MarkAttendanceScreen> {
   }
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SafeArea(child: Container(
       width: double.infinity,
       height: double.infinity,
       color: Colors.black,
@@ -129,7 +133,7 @@ class _markAttendance extends State<MarkAttendanceScreen> {
                 ),
               ),
 
-         /* Positioned(
+          /* Positioned(
             bottom: 120,
             left: 0,
             right: 0,
@@ -286,7 +290,7 @@ class _markAttendance extends State<MarkAttendanceScreen> {
             ),
         ],
       ),
-    );
+    ));
   }
   Widget _controlButton({
     required IconData icon,
@@ -317,11 +321,12 @@ class _markAttendance extends State<MarkAttendanceScreen> {
 
     await _controller?.dispose();
 
-    if (cameraSelection == 1) {
+    /*if (cameraSelection == 1) {
       cameraSelection = 0;
     } else {
       cameraSelection = 1;
-    }
+    }*/
+    cameraSelection = (cameraSelection + 1) % cameras.length;
 
     await getCameras();
   }

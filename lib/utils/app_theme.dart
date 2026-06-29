@@ -93,6 +93,8 @@ class AppTheme {
   static const Color SubExpensionTileBorder=Color(0xFF92DBF5);
 
 
+  static const Color escStart = Color(0xFFFBE8DB);
+  static const Color escEnd = Color(0xFFFDF8F5);
 
 
 

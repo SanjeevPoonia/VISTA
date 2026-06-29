@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -103,14 +104,67 @@ class _landingState extends State<LandingScreen>{
           ),
         ),
         actions: [
-          IconButton(
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.notifications_active,
+                  color: AppTheme.themeColor,
+                  size: 28,
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => NotificationScreen(),
+                    ),
+                  ).then((value) {
+                    _getUserData();
+                  });
+                },
+              ),
+
+              if (notificationCount != "0")
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    constraints: const BoxConstraints(
+                      minWidth: 10,
+                      minHeight: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Text(
+                      int.parse(notificationCount) > 99
+                          ? "99+"
+                          : notificationCount,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          /*IconButton(
             icon: const Icon(Icons.notifications_active, color: AppTheme.themeColor, size: 28),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationScreen())).then((value) => {
                 _getUserData()
               });
             },
-          ),
+          ),*/
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.black, size: 28),
             onPressed: _showAlertDialog,
@@ -304,6 +358,7 @@ class _landingState extends State<LandingScreen>{
 
     });
     _getHomePageData(context);
+    checkNotificationPermission();
   }
   _getHomePageData(BuildContext context) async {
     APIDialog.showAlertDialog(context, 'Please Wait...');
@@ -892,6 +947,52 @@ class _landingState extends State<LandingScreen>{
         ),
       ),
     );
+  }
+  Future<void> checkNotificationPermission() async {
+
+    NotificationSettings settings =
+    await FirebaseMessaging.instance.getNotificationSettings();
+
+    String notificationStatus = "0";
+
+    switch (settings.authorizationStatus) {
+
+      case AuthorizationStatus.authorized:
+        notificationStatus = "1";
+        break;
+
+      case AuthorizationStatus.provisional:
+        notificationStatus = "1";
+        break;
+
+      case AuthorizationStatus.denied:
+        notificationStatus = "0";
+        break;
+
+      case AuthorizationStatus.notDetermined:
+        notificationStatus = "3";
+        break;
+    }
+
+    print("Notification Status => $notificationStatus");
+
+    _updateNotificationStatus(context,notificationStatus);
+  }
+  _updateNotificationStatus(BuildContext context,String notificationStatus) async {
+    APIDialog.showAlertDialog(context, 'Please Wait...');
+    String? token = await FirebaseMessaging.instance.getToken()??"";
+    var data = {
+      "fcm_token":token,
+      "auth_key": sRemeberToken,
+      "user_id": sUserId,
+      "is_notifible":notificationStatus,
+    };
+    print(data);
+    ApiBaseHelper helper = ApiBaseHelper();
+    var response = await helper.postAPI(baseUrl,'vi_push_notification_check', data, context);
+    Navigator.pop(context);
+    var responseJSON = json.decode(response.body);
+    print(responseJSON);
   }
 
 }

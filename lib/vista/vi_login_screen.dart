@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -462,10 +463,11 @@ class _viLoginScreen extends State<ViLoginScreen>{
       lat=_currentPosition!.latitude;
       long=_currentPosition!.longitude;
     }
+    String? token = await FirebaseMessaging.instance.getToken()??"";
     var data = {
       "mobile_number": mobileNoController.text,
       "password": passwordController.text,
-      "fcm_token": "",
+      "fcm_token": token,
       "latitude": lat,
       "longitude": long,
     };

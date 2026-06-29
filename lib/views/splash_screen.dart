@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -124,8 +125,9 @@ class splashState extends State<SplashScreen>
     _checkAppVersionAndProceed();
   }
   Future<void> _checkUserConditions() async {
+    String? token = await FirebaseMessaging.instance.getToken();
+    print("**********fcm token***********$token");
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-
     String baseUrl = prefs.getString('base_url') ?? '';
 
     if (baseUrl.isNotEmpty) {

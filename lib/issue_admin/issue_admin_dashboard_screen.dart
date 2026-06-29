@@ -1,5 +1,6 @@
 
 import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -16,6 +17,7 @@ import '../network/Utils.dart';
 import '../network/api_helper.dart';
 import 'list_offissues_page.dart';
 import 'dart:io';
+import 'package:vista/issue_admin/escalation_list_screen.dart';
 
 class IssueAdminDashboard extends StatefulWidget{
   _issueAdminState createState()=>_issueAdminState();
@@ -85,6 +87,9 @@ class _issueAdminState extends State<IssueAdminDashboard>{
   String reportWebUrl="";
   String inTatResolved="0";
   String outTatResolved="0";
+  String notificationCount="0";
+
+  String EmpRoleId="";
 
 
 
@@ -106,11 +111,58 @@ class _issueAdminState extends State<IssueAdminDashboard>{
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_active, color: Color(0xFF4A90E2), size: 28),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationScreen()));
-            },
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.notifications_active,
+                  color: AppTheme.themeColor,
+                  size: 28,
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => NotificationScreen(),
+                    ),
+                  ).then((value) {
+                    _getUserData();
+                  });
+                },
+              ),
+
+              if (notificationCount != "0")
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    constraints: const BoxConstraints(
+                      minWidth: 10,
+                      minHeight: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Text(
+                      int.parse(notificationCount) > 99
+                          ? "99+"
+                          : notificationCount,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           IconButton(
             icon: const Icon(Icons.logout, color: Color(0xFFD64545), size: 26),
@@ -283,7 +335,31 @@ class _issueAdminState extends State<IssueAdminDashboard>{
               );
             }):Container(),
             const SizedBox(height: 20),
+
+            EmpRoleId=="20" || EmpRoleId=="24"?
+
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildEscalationCard(
+                      onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EscalationListScreen(),
+                            ),
+                          );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ):Container(),
+
+
+
+
             // ------------------ Pie Chart ------------------
+
             Card(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
@@ -505,7 +581,7 @@ class _issueAdminState extends State<IssueAdminDashboard>{
     sUserId=await MyUtils.getSharedPreferences("user_id")??"";
     sUserLanguage=await MyUtils.getSharedPreferences("language")??"";
     baseUrl=await MyUtils.getSharedPreferences("base_url")??"";
-
+    EmpRoleId= await MyUtils.getSharedPreferences("emp_role_id")??"";
     String uRole=await MyUtils.getSharedPreferences("user_role")??"";
     userRole=_getUserRoleName(uRole);
 
@@ -528,6 +604,8 @@ class _issueAdminState extends State<IssueAdminDashboard>{
 
     });
     _getDataFromSerVer();
+
+    checkNotificationPermission();
   }
   String _getUserRoleName(String uRole){
     if(uRole=="state_head"){
@@ -1025,6 +1103,134 @@ class _issueAdminState extends State<IssueAdminDashboard>{
                 height: 150
             )
           ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> checkNotificationPermission() async {
+
+    NotificationSettings settings =
+    await FirebaseMessaging.instance.getNotificationSettings();
+
+    String notificationStatus = "0";
+
+    switch (settings.authorizationStatus) {
+
+      case AuthorizationStatus.authorized:
+        notificationStatus = "1";
+        break;
+
+      case AuthorizationStatus.provisional:
+        notificationStatus = "1";
+        break;
+
+      case AuthorizationStatus.denied:
+        notificationStatus = "0";
+        break;
+
+      case AuthorizationStatus.notDetermined:
+        notificationStatus = "3";
+        break;
+    }
+
+    print("Notification Status => $notificationStatus");
+
+    _updateNotificationStatus(context,notificationStatus);
+  }
+  _updateNotificationStatus(BuildContext context,String notificationStatus) async {
+    APIDialog.showAlertDialog(context, 'Please Wait...');
+    String? token = await FirebaseMessaging.instance.getToken()??"";
+    var data = {
+      "fcm_token":token,
+      "auth_key": sRemeberToken,
+      "user_id": sUserId,
+      "is_notifible":notificationStatus,
+    };
+    print(data);
+    ApiBaseHelper helper = ApiBaseHelper();
+    var response = await helper.postAPI(baseUrl,'vi_push_notification_check', data, context);
+    Navigator.pop(context);
+    var responseJSON = json.decode(response.body);
+    print(responseJSON);
+  }
+
+  Widget _buildEscalationCard({
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 3,
+      shadowColor: Colors.black12,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: LinearGradient(
+              colors: [
+                Colors.red.shade50,
+                Colors.orange.shade50,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Row(
+            children: [
+
+              Container(
+                height: 58,
+                width: 58,
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: const Icon(
+                  Icons.campaign_rounded,
+                  color: Colors.red,
+                  size: 30,
+                ),
+              ),
+
+              const SizedBox(width: 18),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+
+                    Text(
+                      "Missed Checklist",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      "View and manage missed checklist by Store managers",
+                      style: TextStyle(
+                        color: Colors.black54,
+                        fontSize: 13,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                  ],
+                ),
+              ),
+
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Colors.black45,
+                size: 18,
+              ),
+            ],
+          ),
         ),
       ),
     );

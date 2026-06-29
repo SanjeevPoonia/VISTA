@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "424130224395",
+    "project_id": "vista-5f615",
+    "storage_bucket": "vista-5f615.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:424130224395:android:3fba689d20e6c14531820e",
+        "android_client_info": {
+          "package_name": "com.qdegrees.vista.vista"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDM7rzaYtOV9GSvqe_Dh5ixuvtJmoDZtN4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
