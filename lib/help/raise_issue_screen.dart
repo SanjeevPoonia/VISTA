@@ -3,9 +3,13 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pro_image_editor/models/editor_callbacks/pro_image_editor_callbacks.dart';
+import 'package:pro_image_editor/modules/main_editor/main_editor.dart';
 import 'package:toast/toast.dart';
 import 'package:vista/utils/app_theme.dart';
-
+import 'package:vista/vista/MarkAttendanceScreen.dart';
+import 'dart:typed_data';
 import '../network/Utils.dart';
 import '../network/api_dialog.dart';
 import '../network/api_helper.dart';
@@ -27,6 +31,7 @@ class _RaiseIssuePageState extends State<RaiseIssuePage> {
   Map<String,dynamic>? selectedSubTopic;
   String? description;
   File? _image;
+  XFile? capturedImage;
   String? selectedIssueId;
   String? selectedSubIssueId;
   String pageTitle="Raise an Issue";
@@ -47,6 +52,74 @@ class _RaiseIssuePageState extends State<RaiseIssuePage> {
         _image = File(pickedFile.path);
       });
     }
+  }
+
+  Future<void> prepairCamera() async{
+
+    final imageData=await Navigator.push(context,MaterialPageRoute(builder: (context)=>MarkAttendanceScreen(0)));
+    if(imageData!=null)
+    {
+      capturedImage=imageData;
+      _image=File(capturedImage!.path);
+      openImageEditor(_image!);
+    }else{
+      Toast.show("Unable to capture Image. Please try Again...",
+          duration: Toast.lengthLong,
+          gravity: Toast.bottom,
+          backgroundColor: Colors.red);
+    }
+
+    // imageSelector(context);
+    /*if(Platform.isAndroid){
+      final imageData=await Navigator.push(context,MaterialPageRoute(builder: (context)=>MarkAttendanceScreen(0)));
+      if(imageData!=null)
+      {
+        capturedImage=imageData;
+        capturedFile=File(capturedImage!.path);
+        openImageEditor(capturedFile!);
+       // _showCameraImageDialog();
+      }else{
+        Toast.show("Unable to capture Image. Please try Again...",
+            duration: Toast.lengthLong,
+            gravity: Toast.bottom,
+            backgroundColor: Colors.red);
+      }
+    }else{
+      imageSelector(context);
+    }*/
+
+
+  }
+  Future<void> openImageEditor(File imageFile) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (editorContext) => ProImageEditor.file(
+          imageFile,
+          callbacks: ProImageEditorCallbacks(
+            onImageEditingComplete: (Uint8List bytes) async {
+              final tempDir = await getTemporaryDirectory();
+              final editedFile = File(
+                '${tempDir.path}/edited_${DateTime.now().millisecondsSinceEpoch}.jpg',
+              );
+              await editedFile.writeAsBytes(bytes);
+              _image = editedFile;
+              // Close Image Editor
+              Navigator.of(editorContext).pop();
+              // Give navigation some time
+              await Future.delayed(
+                const Duration(milliseconds: 200),
+              );
+              if (mounted) {
+               setState(() {
+
+               });
+              }
+            },
+          ),
+        ),
+      ),
+    );
   }
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
@@ -513,8 +586,6 @@ class _RaiseIssuePageState extends State<RaiseIssuePage> {
       },
     );
   }
-
-
   Future<void> _recordAudio() async{
     int currentTimeMillis = DateTime.now().millisecondsSinceEpoch;
     String fileNameCustom = "${currentTimeMillis}issue_recorded_audio";

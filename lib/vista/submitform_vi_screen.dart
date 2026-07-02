@@ -56,56 +56,40 @@ class _submitFormState extends State<SubmitFormVIScreen>{
   List<TaskDraftedQuestionList> draftedQuestionList=[];
   XFile? capturedImage;
   File? capturedFile;
-
   XFile? imageFile;
   File? file;
-
   int cameraGroupPosition=0;
   int cameraSubGroupPosition=0;
   int cameraSelectionPosition=0;
   String cameraSelectionQuestionId="";
   String selectedFileType="";
-
   int videoGroupPosition=0;
   int videoSubGroupPosition=0;
   int videoSelectionPosition=0;
   String videoSelectionQuestionId="";
   XFile? videoFile;
   File? vFile;
-
   int eSignGroupPosition=0;
   int eSignSubGroupPosition=0;
   int eSignSelectedPosition=0;
   String eSignSelectionQuestionId="";
-
-
   int audioGroupPosition=0;
   int audioSubGroupPosition=0;
   int audioSelectedPosition=0;
   String audioSelectionQuestionId="";
   String? _filePathRecording;
-
   String taskRemarkFromAdmin="";
   String referenceImageBaseUrl="";
-
   ValueNotifier<double> uploadProgressNotifier = ValueNotifier<double>(0.0);
   Map<String, TextEditingController> controllersMap = {};
   Map<String, FocusNode> focusNodesMap = {};
-
   String latitudeStr="";
   String longitudeStr="";
   Position? _currentPosition;
-
   List<bool> _expandedState = [];
   Map<String, String> lastSavedSubAnswers = {};
-
-
   Map<String, FocusNode> mainFocusNodesMap = {};
   Map<String, String> lastSavedMainAnswers = {};
-
-
-
-
   Widget _buildActionButton({
     required IconData icon,
     required Color color,
@@ -296,7 +280,6 @@ class _submitFormState extends State<SubmitFormVIScreen>{
           );
         });
   }
-
   Future<bool> _handleLocationPermission() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -950,7 +933,10 @@ class _submitFormState extends State<SubmitFormVIScreen>{
                                                                           selected: isSelected,
                                                                           selectedColor: status == "Yes" ? Colors.green : Colors.red,
                                                                           checkmarkColor: Colors.white, // tick का color white
-                                                                          onSelected: (bool selected) {
+                                                                          onSelected: (bool selected)async {
+                                                                            FocusManager.instance.primaryFocus?.unfocus();
+                                                                            await Future.delayed(const Duration(milliseconds: 150));
+                                                                            if (!mounted) return;
                                                                             setState(() {
                                                                               answerStr = selected ? status : "";
                                                                             });

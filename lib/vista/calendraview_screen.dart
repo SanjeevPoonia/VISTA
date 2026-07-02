@@ -443,7 +443,6 @@ class calendraViewState extends State<CalendraViewScreen> with WidgetsBindingObs
               _getUserData()
             });
           }
-
         }
       },
       child: Container(

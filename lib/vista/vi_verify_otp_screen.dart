@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:camera/camera.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:io';
@@ -15,7 +13,6 @@ import 'package:toast/toast.dart';
 import 'package:vista/utils/app_theme.dart';
 import 'package:vista/vista/MarkAttendanceScreen.dart';
 import 'package:vista/vista/landing_screen.dart';
-
 import '../issue_admin/issue_admin_dashboard_screen.dart';
 import '../network/Utils.dart';
 import '../network/api_dialog.dart';
@@ -23,6 +20,7 @@ import '../network/api_helper.dart';
 import '../network/loader.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:pinput/pinput.dart';
 
 class VerifyOtp extends StatefulWidget{
   String userId;
@@ -36,24 +34,14 @@ class VerifyOtp extends StatefulWidget{
 class _verifyOtpState extends State<VerifyOtp>{
 
   String? userEnteredOTP = "";
-  List<TextEditingController?> controllerList = [
-    TextEditingController(),
-    TextEditingController(),
-    TextEditingController(),
-    TextEditingController(),
-    TextEditingController(),
-    TextEditingController(),
-  ];
+  final TextEditingController otpController = TextEditingController();
   int _start = 30;
   Timer? _timer;
-
-  bool clearText = false;
   var baseUrl;
   List<dynamic> locationList=[];
   Position? _currentPosition;
   XFile? capturedImage;
   File? capturedFile;
-
   XFile? imageFile;
   File? file;
   void startTimer() {
@@ -84,10 +72,7 @@ class _verifyOtpState extends State<VerifyOtp>{
   @override
   Widget build(BuildContext context) {
     ToastContext().init(context);
-    bool setText = clearText;
-    if (clearText) {
-      clearText = false;
-    }
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SafeArea(child: Stack(
@@ -102,7 +87,6 @@ class _verifyOtpState extends State<VerifyOtp>{
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 SizedBox(height: 10,),
-
                 Container(
                   height: 400,
                   width: double.infinity,
@@ -152,7 +136,7 @@ class _verifyOtpState extends State<VerifyOtp>{
                             )),
                       ),
                       const SizedBox(height: 25),
-                      Container(
+                      /*Container(
                         margin: const EdgeInsets.symmetric(horizontal: 20),
                         height: 45,
                         child: Center(
@@ -188,6 +172,74 @@ class _verifyOtpState extends State<VerifyOtp>{
                               });
                             },
                           ),
+                        ),
+                      ),*/
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Pinput(
+                          controller: otpController,
+                          length: 4,
+                          autofocus: true,
+                          keyboardType: TextInputType.number,
+                          closeKeyboardWhenCompleted: true,
+                          showCursor: false,
+                          defaultPinTheme: PinTheme(
+                            width: 55,
+                            height: 50,
+                            textStyle: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.otpColor,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: AppTheme.otpColor,
+                              ),
+                            ),
+                          ),
+                          focusedPinTheme: PinTheme(
+                            width: 55,
+                            height: 50,
+                            textStyle: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.otpColor,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: AppTheme.orangeColor,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          submittedPinTheme: PinTheme(
+                            width: 55,
+                            height: 50,
+                            textStyle: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.otpColor,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: AppTheme.otpColor,
+                              ),
+                            ),
+                          ),
+                          autofillHints: const [AutofillHints.oneTimeCode],
+                          onChanged: (value) {
+                            userEnteredOTP = value;
+                          },
+                          onCompleted: (value) {
+                            userEnteredOTP = value;
+                            setState(() {});
+                          },
                         ),
                       ),
                       const SizedBox(height: 25),
@@ -308,7 +360,8 @@ class _verifyOtpState extends State<VerifyOtp>{
           gravity: Toast.bottom,
           backgroundColor: Colors.green);
       startTimer();
-      clearText = true;
+      otpController.clear();
+      userEnteredOTP = "";
       setState(() {});
     }
     else
@@ -345,14 +398,14 @@ class _verifyOtpState extends State<VerifyOtp>{
   }
   _submitHandler() async {
     print(userEnteredOTP);
-    if (userEnteredOTP != "") {
-      validateMobileotp(userEnteredOTP);
-    } else {
-      Toast.show("Please Enter OTP",
+    if(otpController.text.length != 4){
+      Toast.show("Please enter a valid 4-digit OTP",
           duration: Toast.lengthLong,
           gravity: Toast.bottom,
           backgroundColor: Colors.red);
+      return;
     }
+    validateMobileotp(userEnteredOTP);
   }
   validateMobileotp(otpStr) async {
     FocusScope.of(context).unfocus();
@@ -990,6 +1043,11 @@ class _verifyOtpState extends State<VerifyOtp>{
 
 
 
+  }
+  @override
+  void dispose() {
+    otpController.dispose();
+    super.dispose();
   }
 
 }
