@@ -247,7 +247,7 @@ class _RaiseIssuePageState extends State<RaiseIssuePage> {
               Row(
                 children: [
                   ElevatedButton.icon(
-                    onPressed: _pickImage,
+                    onPressed: prepairCamera,
                     icon: Icon(Icons.camera_alt,color: AppTheme.orangeColor,),
                     label: Text("Capture Image",style: TextStyle(color: AppTheme.orangeColor),),
                   ),
