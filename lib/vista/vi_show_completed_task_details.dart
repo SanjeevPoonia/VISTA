@@ -219,6 +219,21 @@ class _submittedTaskDetails extends State<ViShowCompletedTaskDetails>{
                                                 String readOnlyAnswer=question.readOnlyAnswer;
                                                 String ScoreQuestion= question.selfScore;
 
+                                                String aiStatus=question.aiStatus;
+                                                String aiRemark=question.aiRemark;
+                                                print("aiStatus : $aiStatus");
+                                                print("aiRemark : $aiRemark");
+                                                bool isShowRemark=false;
+                                                if(aiStatus.isNotEmpty){
+                                                  isShowRemark=true;
+                                                }
+                                                bool aiSt=false;
+                                                if(aiStatus=='PASS'){
+                                                  aiSt=true;
+                                                }else{
+                                                  aiSt = false;
+                                                }
+
 
 
                                                 return Card(
@@ -374,6 +389,11 @@ class _submittedTaskDetails extends State<ViShowCompletedTaskDetails>{
                                                             )):Container(),
                                                           ],
                                                         ),
+                                                        const SizedBox(height: 15),
+                                                        isShowRemark?
+                                                        buildAIRemarkCard(
+                                                          aiSt,aiRemark
+                                                        ):SizedBox(),
                                                         subQuestionList.isNotEmpty?
                                                         ListView.builder(
                                                             itemCount: subQuestionList.length,
@@ -456,6 +476,88 @@ class _submittedTaskDetails extends State<ViShowCompletedTaskDetails>{
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget buildAIRemarkCard(bool approved,String remark) {
+
+    return Container(
+      margin: const EdgeInsets.only(top: 15),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: approved
+            ? const Color(0xffF0FFF5)
+            : const Color(0xffFFF5F5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: approved
+              ? Colors.green.shade300
+              : Colors.red.shade300,
+        ),
+      ),
+
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          Row(
+            children: [
+
+              Icon(
+                Icons.auto_awesome,
+                color: approved
+                    ? Colors.green
+                    : Colors.red,
+              ),
+
+              const SizedBox(width: 8),
+
+              const Text(
+                "AI Remark",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+
+              const Spacer(),
+
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: approved
+                      ? Colors.green
+                      : Colors.red,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  approved
+                      ? "Approved"
+                      : "Rejected",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              )
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          Text(
+            remark,
+            style: const TextStyle(
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -572,7 +674,9 @@ class _submittedTaskDetails extends State<ViShowCompletedTaskDetails>{
               q['answers']?['esign']?.toString()??"",
               q['answers']?['self_score']?.toString()??"NA",
               q['read_only_answer']?.toString() ?? "",
-              subQuestions
+              q['answers']?['ai_remark']?.toString()??"",
+              q['answers']?['ai_status']?.toString()??"",
+              subQuestions,
           );
         }).toList();
 

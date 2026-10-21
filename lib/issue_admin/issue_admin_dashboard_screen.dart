@@ -629,7 +629,7 @@ class _issueAdminState extends State<IssueAdminDashboard>{
   _getDataFromSerVer(){
     _getTickets(context);
     _getParetoData(context);
-    _getStoreWiseData(context);
+     _getStoreWiseData(context);
   }
   _getStoreWiseData(BuildContext context) async {
     setState(() {
@@ -964,80 +964,122 @@ class _issueAdminState extends State<IssueAdminDashboard>{
       },
     );
   }
-  _getParetoData(BuildContext context) async {
+
+  Future<void> _getParetoData(BuildContext context) async {
+    if (!mounted) return;
+
     setState(() {
-      isParetoLoading=true;
+      isParetoLoading = true;
     });
-    var data = {
-      "auth_key": sRemeberToken,
-      "user_id": sUserId,
-      "start_date":selectedStartDate,
-      "end_date":selectedEndDate
-    };
-    print(data);
-    ApiBaseHelper helper = ApiBaseHelper();
-    var response = await helper.postAPI(baseUrl,'issue-wise-pareto', data, context);
-    //Navigator.pop(context);
-    var responseJSON = json.decode(response.body);
-    print(responseJSON);
-    if(responseJSON["status"]==1)
-    {
-      paretoChartData.clear();
-      List<dynamic> tempList=responseJSON['data']??[];
-      for(int i=0;i<tempList.length;i++){
-        String id=tempList[i]['id']?.toString()??"";
-        String issue=tempList[i]['issue']?.toString()??"";
-        int totalCount=tempList[i]['total_count']??0;
-        int pendingIssue=tempList[i]['pendingIssues']??0;
-        int resolvedIssue=tempList[i]['resolvedIssues']??0;
-        int rejectedIssues=tempList[i]['rejectedIssues']??0;
-        int totalClosed=resolvedIssue+rejectedIssues;
 
+    try {
+      final data = {
+        "auth_key": sRemeberToken,
+        "user_id": sUserId,
+        "start_date": selectedStartDate,
+        "end_date": selectedEndDate,
+      };
 
-        Map<String, dynamic> map= {
-          "id": id,
-          "issue": issue,
-          "totalCount": totalCount,
-          "pendingIssue": pendingIssue,
-          "totalClosed": totalClosed,
-        };
-        paretoChartData.add(map);
+      debugPrint('Pareto request: $data');
 
+      final helper = ApiBaseHelper();
+      final response = await helper.postAPI(
+        baseUrl,
+        'issue-wise-pareto',
+        data,
+        context,
+      );
+
+      final Map<String, dynamic> responseJSON =
+      jsonDecode(response.body) as Map<String, dynamic>;
+
+      debugPrint('Pareto response: $responseJSON');
+
+      final int status =
+          int.tryParse(responseJSON['status']?.toString() ?? '') ?? 0;
+      debugPrint('Pareto response Status: $status');
+      if (status == 1) {
+        final List<dynamic> tempList =
+        responseJSON['data'] is List
+            ? responseJSON['data'] as List<dynamic>
+            : [];
+
+        final List<Map<String, dynamic>> newData = [];
+
+        for (final item in tempList) {
+          final int resolvedIssue =
+              int.tryParse(item['resolvedIssues']?.toString() ?? '0') ?? 0;
+
+          final int rejectedIssues =
+              int.tryParse(item['rejectedIssues']?.toString() ?? '0') ?? 0;
+
+          newData.add({
+            "id": item['id']?.toString() ?? '',
+            "issue": item['issue']?.toString() ?? '',
+            "totalCount":
+            int.tryParse(item['total_count']?.toString() ?? '0') ?? 0,
+            "pendingIssue":
+            int.tryParse(item['pendingIssues']?.toString() ?? '0') ?? 0,
+            "totalClosed": resolvedIssue + rejectedIssues,
+          });
+        }
+
+        if (!mounted) return;
+
+        setState(() {
+          paretoChartData
+            ..clear()
+            ..addAll(newData);
+        });
+      } else if (status == 3) {
+        Toast.show(
+          responseJSON['message']?.toString() ?? 'Session expired',
+          duration: Toast.lengthLong,
+          gravity: Toast.bottom,
+          backgroundColor: Colors.red,
+        );
+
+        if (mounted) {
+          MyUtils.logoutUser(context);
+        }
+      } else if (status == 2) {
+        // No issues found is a valid API response, not necessarily an error.
+        if (!mounted) return;
+
+        setState(() {
+          paretoChartData.clear();
+        });
+
+        APIDialog.showErrorDialog(
+          responseJSON['message']?.toString() ?? 'No issues found.',
+          context,
+        );
+      } else {
+        APIDialog.showErrorDialog(
+          responseJSON['message']?.toString() ??
+              'Something went wrong. Please try again.',
+          context,
+        );
       }
+    } catch (e, stackTrace) {
+      debugPrint('Pareto API error: $e');
+      debugPrintStack(stackTrace: stackTrace);
 
-
-      print(paretoChartData);
-
-
-      setState(() {
-        isParetoLoading=false;
-      });
-
-    }else if(responseJSON["status"]==3){
-
-      Toast.show(responseJSON["message"],
-          duration: Toast.lengthLong,
-          gravity: Toast.bottom,
-          backgroundColor: Colors.red);
-      setState(() {
-        isParetoLoading=false;
-      });
-
-      MyUtils.logoutUser(context);
-
-    } else {
-      setState(() {
-        isParetoLoading=false;
-      });
-      /*Toast.show(responseJSON["message"],
-          duration: Toast.lengthLong,
-          gravity: Toast.bottom,
-          backgroundColor: Colors.red);*/
-      APIDialog.showErrorDialog(responseJSON["message"]?.toString()??"Something went wrong. Please try again", context);
+      if (mounted) {
+        APIDialog.showErrorDialog(
+          'Unable to load Pareto data. Please try again.',
+          context,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isParetoLoading = false;
+        });
+      }
     }
-
-
   }
+
   List<MonthFilter> getMonthFilters() {
     final now = DateTime.now();
 
@@ -1138,22 +1180,45 @@ class _issueAdminState extends State<IssueAdminDashboard>{
 
     _updateNotificationStatus(context,notificationStatus);
   }
-  _updateNotificationStatus(BuildContext context,String notificationStatus) async {
-    APIDialog.showAlertDialog(context, 'Please Wait...');
-    String? token = await FirebaseMessaging.instance.getToken()??"";
-    var data = {
-      "fcm_token":token,
-      "auth_key": sRemeberToken,
-      "user_id": sUserId,
-      "is_notifible":notificationStatus,
-    };
-    print(data);
-    ApiBaseHelper helper = ApiBaseHelper();
-    var response = await helper.postAPI(baseUrl,'vi_push_notification_check', data, context);
-    Navigator.pop(context);
-    var responseJSON = json.decode(response.body);
-    print(responseJSON);
+
+  Future<void> _updateNotificationStatus(
+      BuildContext context,
+      String notificationStatus,
+      ) async {
+    try {
+      final String token =
+          await FirebaseMessaging.instance.getToken() ?? "";
+
+      if (!mounted) return;
+
+      final data = {
+        "fcm_token": token,
+        "auth_key": sRemeberToken,
+        "user_id": sUserId,
+        "is_notifible": notificationStatus,
+      };
+
+      debugPrint("Updating notification settings...");
+
+      final helper = ApiBaseHelper();
+
+      final response = await helper.postAPI(
+        baseUrl,
+        'vi_push_notification_check',
+        data,
+        context,
+      );
+
+      debugPrint(
+        "Notification update HTTP status: ${response.statusCode}",
+      );
+      debugPrint("Notification settings update completed.");
+    } catch (e, stackTrace) {
+      debugPrint("Notification settings update failed: $e");
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
+
 
   Widget _buildEscalationCard({
     required VoidCallback onTap,

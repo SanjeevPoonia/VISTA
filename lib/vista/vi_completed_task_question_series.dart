@@ -28,7 +28,10 @@ class viCompletedQuestionsList{
   String eSignUrl;
   String selfScore;
   String readOnlyAnswer;
+  String aiStatus;
+  String aiRemark;
   List<viCompletedSubQuestionListSeries> subQuestionList;
+
 
   viCompletedQuestionsList(
       this.questionId,
@@ -44,8 +47,10 @@ class viCompletedQuestionsList{
       this.eSignUrl,
       this.selfScore,
       this.readOnlyAnswer,
+      this.aiRemark,
+      this.aiStatus,
       this.subQuestionList,
-     );
+      );
 }
 class viCompletedSubQuestionListSeries{
   String subQuestionId;

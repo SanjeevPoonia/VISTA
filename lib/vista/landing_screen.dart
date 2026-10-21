@@ -6,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:toast/toast.dart';
 import 'package:vista/help/raised_issuelist_screen.dart';
+import 'package:vista/testimonial/addtestimonial_screen.dart';
 import 'package:vista/utils/app_theme.dart';
 import 'package:vista/views/notification_screen.dart';
 import 'package:vista/vista/calendraview_screen.dart';
@@ -63,6 +64,9 @@ class _landingState extends State<LandingScreen>{
   String assignedBy="all";
   String byDueTime="nearest";
   String userGuidePdfUrl="";
+  
+  String storeName="";
+  String circleName="";
 
 
 
@@ -209,6 +213,24 @@ class _landingState extends State<LandingScreen>{
                             color: AppTheme.orangeColor,
                           ),
                         ),
+                        const SizedBox(height: 05,),
+                        storeName.isNotEmpty? Text(
+                          "Store : $storeName",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.themeColor,
+                          ),
+                        ):SizedBox(),
+                        const SizedBox(height: 05,),
+                        circleName.isNotEmpty? Text(
+                          "Circle : $circleName",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.themeColor,
+                          ),
+                        ):SizedBox(),
                       ],
                     ),
                   ),
@@ -285,12 +307,15 @@ class _landingState extends State<LandingScreen>{
                   })
                       :Container(),
 
+                  /*_buildTaskCardRaise("assets/raise_issue.svg", "Cust\nTesti",   () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => AddTestimonial_Screen()),
+                    );
+                  }),*/
+
                 ],
               ),
-
-
-
-
               const SizedBox(height: 30),
               /// Today’s Tasks Title
               Row(
@@ -376,6 +401,9 @@ class _landingState extends State<LandingScreen>{
     print(responseJSON);
     if(responseJSON["status"]==1)
     {
+      storeName=responseJSON['storeName']?.toString()??"";
+      circleName=responseJSON['circleName']?.toString()??"";
+
       incompleteTaskCount=responseJSON['totalPandingTask'].toString();
       completedTaskCount=responseJSON['totalTask'].toString();
       expiredTaskCount=responseJSON['totalExpiredTask']?.toString()??"0";
